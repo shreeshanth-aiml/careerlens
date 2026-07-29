@@ -19,6 +19,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { InterviewQuestion, AnswerEvaluation, QuestionAnswerState } from "../types";
+import { generateInterviewQuestionsApi, evaluateAnswerApi } from "../services/apiClient";
 
 interface MockInterviewProps {
   initialJobRole?: string;
@@ -141,24 +142,17 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
     setSessionCompleted(false);
 
     try {
-      const res = await fetch("/api/interview/questions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          jobRole,
-          companyName,
-          jobDescriptionText,
-          resumeText: initialResumeText,
-        }),
+      const qList = await generateInterviewQuestionsApi({
+        jobRole,
+        companyName,
+        jobDescriptionText,
+        resumeText: initialResumeText,
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to generate questions.");
-
-      if (data.questions && data.questions.length > 0) {
-        setQuestions(data.questions);
+      if (qList && qList.length > 0) {
+        setQuestions(qList);
       } else {
-        throw new Error("No questions returned from Gemini.");
+        throw new Error("No questions returned.");
       }
     } catch (err: any) {
       setErrorMsg(err.message || "Something went wrong generating questions.");
@@ -194,20 +188,13 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
     setErrorMsg(null);
 
     try {
-      const res = await fetch("/api/interview/evaluate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          question: currentQuestion.question,
-          category: currentQuestion.category,
-          intent: currentQuestion.intent,
-          userAnswer: currentAnswerState.userAnswer,
-          jobRole,
-        }),
+      const evalData = await evaluateAnswerApi({
+        question: currentQuestion.question,
+        category: currentQuestion.category,
+        intent: currentQuestion.intent,
+        userAnswer: currentAnswerState.userAnswer,
+        jobRole,
       });
-
-      const evalData: AnswerEvaluation = await res.json();
-      if (!res.ok) throw new Error((evalData as any).error || "Evaluation failed.");
 
       setAnswers((prev) => ({
         ...prev,

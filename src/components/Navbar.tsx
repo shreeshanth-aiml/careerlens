@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Sparkles, MessageSquareCode, LayoutDashboard, FileSearch, CheckCircle2, AlertCircle } from "lucide-react";
+import { Sparkles, MessageSquareCode, LayoutDashboard, FileSearch, CheckCircle2, AlertCircle, Globe } from "lucide-react";
+import { checkHealth } from "../services/apiClient";
 
 interface NavbarProps {
   activeTab: "analyze" | "interview" | "dashboard";
@@ -8,16 +9,10 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, savedCount = 0 }) => {
-  const [apiOnline, setApiOnline] = useState<boolean | null>(null);
+  const [apiState, setApiState] = useState<{ online: boolean; mode: "server" | "static" } | null>(null);
 
   useEffect(() => {
-    fetch("/api/health")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.status === "ok") setApiOnline(true);
-        else setApiOnline(false);
-      })
-      .catch(() => setApiOnline(false));
+    checkHealth().then((res) => setApiState(res));
   }, []);
 
   return (
@@ -92,20 +87,20 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, savedCo
 
         {/* API Status */}
         <div className="hidden md:flex items-center space-x-2 text-xs">
-          {apiOnline === true ? (
+          {apiState?.mode === "server" ? (
             <div className="flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
               <CheckCircle2 className="w-3.5 h-3.5" />
               <span>Gemini Server Online</span>
             </div>
-          ) : apiOnline === false ? (
-            <div className="flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400">
-              <AlertCircle className="w-3.5 h-3.5" />
-              <span>Server Connection Issue</span>
+          ) : apiState?.mode === "static" ? (
+            <div className="flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300">
+              <Globe className="w-3.5 h-3.5" />
+              <span>GitHub Pages (Client AI Active)</span>
             </div>
           ) : (
             <div className="flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-slate-800 text-slate-400">
               <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-              <span>Connecting...</span>
+              <span>Checking environment...</span>
             </div>
           )}
         </div>

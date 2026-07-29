@@ -6,6 +6,7 @@ import { GapAnalysis } from "./components/GapAnalysis";
 import { MockInterview } from "./components/MockInterview";
 import { Dashboard } from "./components/Dashboard";
 import { AnalysisResult } from "./types";
+import { analyzeResumeApi } from "./services/apiClient";
 import {
   Sparkles,
   Loader2,
@@ -130,23 +131,13 @@ Requirements:
       setTimeout(() => setAnalysisStep("Evaluating ATS compatibility & calculating score..."), 1500);
       setTimeout(() => setAnalysisStep("Synthesizing quantified bullet point rewrites..."), 2400);
 
-      const response = await fetch("/api/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          resumePdfBase64: resumeMode === "pdf" ? pdfBase64 : undefined,
-          resumeText: resumeMode === "text" ? resumeText : undefined,
-          jobDescriptionText,
-          jobTitle,
-          companyName,
-        }),
+      const data = await analyzeResumeApi({
+        resumePdfBase64: resumeMode === "pdf" ? pdfBase64 : undefined,
+        resumeText: resumeMode === "text" ? resumeText : undefined,
+        jobDescriptionText,
+        jobTitle,
+        companyName,
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Analysis failed on server.");
-      }
 
       setCurrentResult(data);
       saveToHistory(data);

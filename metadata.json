@@ -1,0 +1,6 @@
+{
+  "name": "CareerLens",
+  "description": "AI-powered resume analyzer, ATS compatibility checker, bullet point optimizer, and interactive mock interview simulator.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
